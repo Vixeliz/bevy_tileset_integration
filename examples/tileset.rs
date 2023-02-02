@@ -111,8 +111,10 @@ fn test_chunk(
         let atlas = tileset.atlas();
         let texture = tileset.texture().clone();
         let transform = Transform::from_translation(Vec3::new(
-            chunk.pos.x as f32 * VECTOR_CHUNK_SIZE.x as f32 * tile_size.x,
-            chunk.pos.y as f32 * VECTOR_CHUNK_SIZE.y as f32 * tile_size.y,
+            chunk.pos.x as f32 * VECTOR_CHUNK_SIZE.x as f32 * tile_size.x
+                - (VECTOR_CHUNK_SIZE.x as f32 / 2.0 * tile_size.x),
+            chunk.pos.y as f32 * VECTOR_CHUNK_SIZE.y as f32 * tile_size.y
+                - (VECTOR_CHUNK_SIZE.y as f32 / 2.0 * tile_size.y),
             0.0,
         ));
         commands.entity(tilemap_entity).insert(TilemapBundle {

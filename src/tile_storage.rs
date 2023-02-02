@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use bevy::prelude::{Component, IVec2, UVec2, Vec2};
 use bimap::BiMap;
 
-pub const CHUNK_SIZE: usize = 64;
+pub const CHUNK_SIZE: usize = 32;
 
 // We are stealing how minecraft and some other engines store chunk blocks. Instead of storing everything as a string per tile(which we could probably get away with in 2d)
 // we store a pallette which will map a tile string to a number then the tiles are stored as the numbers. This allows us to save on memory in most cases where there are same tiles
