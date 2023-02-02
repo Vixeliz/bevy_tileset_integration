@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::{
     prelude::{fill_tilemap, TilemapId, TilemapTexture, TilemapTileSize, TilemapType},
-    tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
+    tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle, TilemapPlugin,
 };
 use bevy_tileset::prelude::*;
@@ -30,6 +30,8 @@ const VECTOR_CHUNK_SIZE: UVec2 = UVec2 {
     y: CHUNK_SIZE as u32,
 };
 
+// This is all temporary I like to get a working prototype before fleshing out and cleaning up so I understand
+// The libs and such
 /// Temporary for me while debuging stuff.
 fn test_chunk(
     mut commands: Commands,
@@ -54,10 +56,11 @@ fn test_chunk(
 
         // === Generate Singular Chunk === //
         let mut chunk = Chunk::new(IVec2::new(0, 0), 0.0, Some("Dirt".to_string()));
-        chunk.set_tile(UVec2::new(10, 10), "Grass".to_string());
+        chunk.set_tile(UVec2::new(10, 10), "Wall".to_string());
+        chunk.set_tile(UVec2::new(10, 9), "Wall".to_string());
+        chunk.set_tile(UVec2::new(10, 8), "Glass".to_string());
         println!("{:?}", chunk);
         println!("{:?}", chunk.get_tile_id(UVec2::new(10, 10)));
-
         // === Bevy_Tileset Stuff === //
         commands.spawn(Camera2dBundle::default());
 
@@ -86,10 +89,19 @@ fn test_chunk(
                                 })
                                 .id()
                         }
-                        _ => {
-                            println!("Unsupported Tile");
-                            commands.spawn_empty().id()
-                        }
+                        TileIndex::Animated(start, end, speed) => commands
+                            .spawn(TileBundle {
+                                texture_index: TileTextureIndex(0),
+                                position: tile_pos,
+                                tilemap_id: TilemapId(tilemap_entity),
+                                ..Default::default()
+                            })
+                            .insert(AnimatedTile {
+                                start: *start as u32 * 2,
+                                end: *end as u32 * 2,
+                                speed: *speed,
+                            })
+                            .id(),
                     };
                     commands.entity(tilemap_entity).add_child(tile_entity);
                     tile_storage.set(&tile_pos, tile_entity);
