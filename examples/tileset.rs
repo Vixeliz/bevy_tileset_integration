@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::{
-    prelude::{TilemapId, TilemapTexture, TilemapTileSize, TilemapType},
+    prelude::{fill_tilemap, TilemapId, TilemapTexture, TilemapTileSize, TilemapType},
     tiles::{TileBundle, TilePos, TileStorage, TileTextureIndex},
-    TilemapBundle,
+    TilemapBundle, TilemapPlugin,
 };
 use bevy_tileset::prelude::*;
 
@@ -16,11 +16,11 @@ struct MyTileset {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(TilemapPlugin)
         .add_plugin(TilesetPlugin::default())
         .init_resource::<MyTileset>()
         .add_startup_system(load_tileset)
         .add_system(test_chunk)
-        // .add_system(show_tileset)
         .run();
 }
 
@@ -59,8 +59,6 @@ fn test_chunk(
         println!("{:?}", chunk.get_tile_id(UVec2::new(10, 10)));
 
         // === Bevy_Tileset Stuff === //
-        let atlas = tileset.atlas();
-        let texture = tileset.texture().clone();
         commands.spawn(Camera2dBundle::default());
 
         // === Bevy_Ecs_Tilemap Stuff === //
@@ -78,19 +76,10 @@ fn test_chunk(
                     let tile_pos = TilePos { x, y };
                     let tile_entity = match tile_idx {
                         TileIndex::Standard(index) => {
-                            commands.spawn(SpriteSheetBundle {
-                                transform: Transform::from_translation(Vec3::new(
-                                    tile_pos.x as f32 * TILE_SIZE.x,
-                                    tile_pos.y as f32 * TILE_SIZE.y,
-                                    0.0,
-                                )),
-                                sprite: TextureAtlasSprite::new(*index),
-                                texture_atlas: atlas.clone(),
-                                ..Default::default()
-                            });
+                            // For some reason the index returns the same block twice. Times by 2 works for some reason
                             commands
                                 .spawn(TileBundle {
-                                    texture_index: TileTextureIndex(*index as u32),
+                                    texture_index: TileTextureIndex((index * 2) as u32),
                                     position: tile_pos,
                                     tilemap_id: TilemapId(tilemap_entity),
                                     ..Default::default()
@@ -114,13 +103,13 @@ fn test_chunk(
             chunk.pos.y as f32 * VECTOR_CHUNK_SIZE.y as f32 * TILE_SIZE.y,
             0.0,
         ));
-
         commands.entity(tilemap_entity).insert(TilemapBundle {
             grid_size: TILE_SIZE.into(),
             size: VECTOR_CHUNK_SIZE.into(),
             storage: tile_storage,
             tile_size: TILE_SIZE,
             transform,
+            map_type: TilemapType::default(),
             texture: TilemapTexture::Single(texture),
             ..Default::default()
         });
@@ -131,64 +120,4 @@ fn test_chunk(
 /// Starts the tileset loading process
 fn load_tileset(mut my_tileset: ResMut<MyTileset>, asset_server: Res<AssetServer>) {
     my_tileset.handle = Some(asset_server.load("tilesets/my_tileset.ron"));
-}
-
-/// Shows the tileset
-///
-/// This uses the `Tilesets` system parameter. Internally it gets the `Res<Assets<Tileset>>`, but also provides
-/// additional niceties (specifically fetching a tileset by name or ID).
-fn show_tileset(
-    tilesets: Tilesets,
-    mut commands: Commands,
-    my_tileset: Res<MyTileset>,
-    mut has_ran: Local<bool>,
-) {
-    if my_tileset.handle.is_none() || *has_ran || !tilesets.contains_name("My Awesome Tileset") {
-        return;
-    }
-
-    let handle = my_tileset.handle.as_ref().unwrap();
-    if let Some(_) = tilesets.get(handle) {
-        println!("Got tileset by handle! ({:?})", my_tileset.handle);
-    }
-    if let Some(tileset) = tilesets.get_by_id(&0) {
-        println!("Got tileset by ID! ({})", tileset.id());
-    }
-    if let Some(tileset) = tilesets.get_by_name("My Awesome Tileset") {
-        println!("Got tileset by name! ({})", tileset.name());
-        println!("{:#?}", tileset);
-
-        // === Display Tileset === //
-        let atlas = tileset.atlas();
-        let texture = tileset.texture().clone();
-        commands.spawn(Camera2dBundle::default());
-        commands.spawn(SpriteBundle {
-            texture,
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..Default::default()
-        });
-
-        // === Display Tile === //
-        if let Some((ref tile_index, ..)) = tileset.select_tile("Wall") {
-            match tile_index {
-                TileIndex::Standard(index) => {
-                    // Do something standard
-                    commands.spawn(SpriteSheetBundle {
-                        transform: Transform {
-                            translation: Vec3::new(08.0, -48.0, 0.0),
-                            ..Default::default()
-                        },
-                        sprite: TextureAtlasSprite::new(*index),
-                        texture_atlas: atlas.clone(),
-                        ..Default::default()
-                    });
-                }
-                TileIndex::Animated(start, end, speed) => {
-                    // Do something  ✨ animated ✨
-                }
-            }
-        }
-
-        *has_ran = true;
-    }
 }
