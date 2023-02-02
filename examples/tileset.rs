@@ -24,7 +24,6 @@ fn main() {
         .run();
 }
 
-const TILE_SIZE: TilemapTileSize = TilemapTileSize { x: 16.0, y: 16.0 };
 const VECTOR_CHUNK_SIZE: UVec2 = UVec2 {
     x: CHUNK_SIZE as u32,
     y: CHUNK_SIZE as u32,
@@ -68,6 +67,10 @@ fn test_chunk(
         //Proof of concept for rendering
         let tilemap_entity = commands.spawn_empty().id();
         let mut tile_storage = TileStorage::empty(VECTOR_CHUNK_SIZE.into());
+        let tile_size = TilemapTileSize {
+            x: tileset.tile_size().x,
+            y: tileset.tile_size().y,
+        };
         // Spawn the elements of the tilemap.
         for x in 0..VECTOR_CHUNK_SIZE.x {
             for y in 0..VECTOR_CHUNK_SIZE.y {
@@ -78,17 +81,14 @@ fn test_chunk(
                 ) {
                     let tile_pos = TilePos { x, y };
                     let tile_entity = match tile_idx {
-                        TileIndex::Standard(index) => {
-                            // For some reason the index returns the same block twice. Times by 2 works for some reason
-                            commands
-                                .spawn(TileBundle {
-                                    texture_index: TileTextureIndex((index * 2) as u32),
-                                    position: tile_pos,
-                                    tilemap_id: TilemapId(tilemap_entity),
-                                    ..Default::default()
-                                })
-                                .id()
-                        }
+                        TileIndex::Standard(index) => commands
+                            .spawn(TileBundle {
+                                texture_index: TileTextureIndex((*index) as u32),
+                                position: tile_pos,
+                                tilemap_id: TilemapId(tilemap_entity),
+                                ..Default::default()
+                            })
+                            .id(),
                         TileIndex::Animated(start, end, speed) => commands
                             .spawn(TileBundle {
                                 texture_index: TileTextureIndex(0),
@@ -97,8 +97,8 @@ fn test_chunk(
                                 ..Default::default()
                             })
                             .insert(AnimatedTile {
-                                start: *start as u32 * 2,
-                                end: *end as u32 * 2,
+                                start: *start as u32,
+                                end: *end as u32,
                                 speed: *speed,
                             })
                             .id(),
@@ -111,15 +111,15 @@ fn test_chunk(
         let atlas = tileset.atlas();
         let texture = tileset.texture().clone();
         let transform = Transform::from_translation(Vec3::new(
-            chunk.pos.x as f32 * VECTOR_CHUNK_SIZE.x as f32 * TILE_SIZE.x,
-            chunk.pos.y as f32 * VECTOR_CHUNK_SIZE.y as f32 * TILE_SIZE.y,
+            chunk.pos.x as f32 * VECTOR_CHUNK_SIZE.x as f32 * tile_size.x,
+            chunk.pos.y as f32 * VECTOR_CHUNK_SIZE.y as f32 * tile_size.y,
             0.0,
         ));
         commands.entity(tilemap_entity).insert(TilemapBundle {
-            grid_size: TILE_SIZE.into(),
+            grid_size: tile_size.into(),
             size: VECTOR_CHUNK_SIZE.into(),
             storage: tile_storage,
-            tile_size: TILE_SIZE,
+            tile_size: tile_size,
             transform,
             map_type: TilemapType::default(),
             texture: TilemapTexture::Single(texture),

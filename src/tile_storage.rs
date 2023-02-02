@@ -3,7 +3,7 @@
 // option for a fixed tilemap. As of right now layers will be handled by just making another one of our tilemap storage options.
 use std::collections::HashMap;
 
-use bevy::prelude::{IVec2, UVec2, Vec2};
+use bevy::prelude::{Component, IVec2, UVec2, Vec2};
 use bimap::BiMap;
 
 pub const CHUNK_SIZE: usize = 64;
@@ -13,7 +13,7 @@ pub const CHUNK_SIZE: usize = 64;
 
 // Chunks are on the user to deal with in terms of deciding when to spawn or remove them. The only case that isn't true is when using tilemap where they will just always be there unless
 // the user chooses to do anything with them.
-#[derive(Debug)]
+#[derive(Debug, Component)]
 pub struct Chunk {
     pub palette: BiMap<String, u16>,
     pub tiles: [u16; CHUNK_SIZE * CHUNK_SIZE],
