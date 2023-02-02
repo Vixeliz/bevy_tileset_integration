@@ -20,7 +20,7 @@ Todo Probably a lot lol
 
 | bevy | bevy_ecs_tilemap | bevy_tileset | bevy_tileset_integration |
 | ---- | ---------------- | ------------ | ------------------------ |
-| 0.9  | 0.9              | 0.6          |                          |
+| 0.9  | 0.9              | 0.6          | 0.1                      |
 
 ### Credits
 [MrGVSV](https://github.com/MrGVSV) and [StarArawn](https://github.com/StarArawn) for their amazing libraries.
