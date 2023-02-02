@@ -1,9 +1,9 @@
 // This is opinionated as we could just store tiles using bevy_ecs_tilemap. However I don't personally like how it uses a texture atlas id for storage.
 // So instead we are using chunks that store the name of a tile. It will always use chunks internally but have an api that offers both chunk access and an
-// option for a fixed tilemap.
+// option for a fixed tilemap. As of right now layers will be handled by just making another one of our tilemap storage options.
 use std::collections::HashMap;
 
-use bevy::prelude::Vec2;
+use bevy::prelude::{UVec2, Vec2};
 
 const CHUNK_SIZE: usize = 64;
 
@@ -14,16 +14,18 @@ const CHUNK_SIZE: usize = 64;
 pub struct Chunk {
     pub palette: HashMap<String, u16>,
     pub tiles: [u16; CHUNK_SIZE * CHUNK_SIZE],
-    pub pos: Vec2,
+    pub pos: UVec2,
+    pub layer: f32,
 }
 
 impl Chunk {
     /// Makes a new chunk filled with nothing.
-    pub fn new(pos: Vec2) -> Chunk {
+    pub fn new(pos: UVec2, layer: f32) -> Chunk {
         let mut new_chunk = Chunk {
             palette: HashMap::new(),
             tiles: [0; CHUNK_SIZE * CHUNK_SIZE],
             pos,
+            layer,
         };
         new_chunk.palette.insert("Air".to_string(), 0);
         new_chunk
@@ -36,16 +38,16 @@ impl Chunk {
             return;
         }
     }
-    pub fn get_tile_id(&self, coords: Vec2) -> u16 {
-        self.tiles[coords.x as usize + coords.y as usize * CHUNK_SIZE]
+    pub fn get_tile_id(&self, coords: UVec2) -> u16 {
+        self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize]
     }
-    pub fn set_tile(&mut self, coords: Vec2, tile: String) {
+    pub fn set_tile(&mut self, coords: UVec2, tile: String) {
         if self.palette.contains_key(&tile) {
-            self.tiles[coords.x as usize + coords.y as usize * CHUNK_SIZE] =
+            self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize] =
                 *self.palette.get(&tile).expect("No value");
         } else {
             self.add_tile_to_chunk(tile.clone());
-            self.tiles[coords.x as usize + coords.y as usize * CHUNK_SIZE] =
+            self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize] =
                 *self.palette.get(&tile).expect("No value");
         }
     }
@@ -53,23 +55,23 @@ impl Chunk {
 
 // Here is the optional fixed size map
 pub struct FixedTilemap {
-    pub size: Vec2,
-    pub chunks: HashMap<u64, Chunk>,
+    pub size: UVec2,
+    pub chunks: HashMap<u32, Chunk>,
 }
 
 impl FixedTilemap {
     /// Create new tilemap with the given size in tiles
-    pub fn new(&self, size: Vec2) -> FixedTilemap {
+    pub fn new(&self, size: UVec2, layer: f32) -> FixedTilemap {
         let mut new_fixed_tilemap = FixedTilemap {
             size,
             chunks: HashMap::new(),
         };
-        for x in 0..(size.x as usize / CHUNK_SIZE) {
-            for y in 0..(size.y as usize / CHUNK_SIZE) {
-                let chunk_pos_index = x as u64 + y as u64 * (size.x as usize / CHUNK_SIZE) as u64;
+        for x in 0..(size.x / CHUNK_SIZE as u32) {
+            for y in 0..(size.y / CHUNK_SIZE as u32) {
+                let chunk_pos_index = x + y * (size.x as usize / CHUNK_SIZE) as u32;
                 new_fixed_tilemap
                     .chunks
-                    .insert(chunk_pos_index, Chunk::new(Vec2::new(x as f32, y as f32)));
+                    .insert(chunk_pos_index, Chunk::new(UVec2::new(x, y), layer));
             }
         }
         new_fixed_tilemap
@@ -77,7 +79,7 @@ impl FixedTilemap {
     pub fn get_chunk_from_tile(&self, tile_pos: Vec2) -> Option<&Chunk> {
         let chunk_pos_index = ((tile_pos.x as usize / CHUNK_SIZE)
             + (tile_pos.y as usize / CHUNK_SIZE) * (self.size.x as usize / CHUNK_SIZE))
-            as u64;
+            as u32;
         self.chunks.get(&chunk_pos_index)
     }
 }

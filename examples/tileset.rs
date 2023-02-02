@@ -21,10 +21,10 @@ fn main() {
 
 /// Temporary for me while debuging stuff.
 fn test_chunk() {
-    let mut chunk = Chunk::new(Vec2::new(0.0, 0.0));
-    chunk.set_tile(Vec2::new(10.0, 10.0), "Grass".to_string());
+    let mut chunk = Chunk::new(UVec2::new(0, 0), 0.0);
+    chunk.set_tile(UVec2::new(10, 10), "Grass".to_string());
     println!("{:?}", chunk);
-    println!("{:?}", chunk.get_tile_id(Vec2::new(10.0, 10.0)));
+    println!("{:?}", chunk.get_tile_id(UVec2::new(10, 10)));
 }
 
 /// Starts the tileset loading process
