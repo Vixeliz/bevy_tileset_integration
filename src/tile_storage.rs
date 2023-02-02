@@ -3,13 +3,15 @@
 // option for a fixed tilemap. As of right now layers will be handled by just making another one of our tilemap storage options.
 use std::collections::HashMap;
 
-use bevy::prelude::{IVec2, Vec2};
+use bevy::prelude::{IVec2, UVec2, Vec2};
 
 const CHUNK_SIZE: usize = 64;
 
 // We are stealing how minecraft and some other engines store chunk blocks. Instead of storing everything as a string per tile(which we could probably get away with in 2d)
 // we store a pallette which will map a tile string to a number then the tiles are stored as the numbers. This allows us to save on memory in most cases where there are same tiles
 
+// Chunks are on the user to deal with in terms of deciding when to spawn or remove them. The only case that isn't true is when using tilemap where they will just always be there unless
+// the user chooses to do anything with them.
 #[derive(Debug)]
 pub struct Chunk {
     pub palette: HashMap<String, u16>,
@@ -38,16 +40,16 @@ impl Chunk {
             return;
         }
     }
-    pub fn get_tile_id(&self, coords: IVec2) -> u16 {
-        self.tiles[(coords.x + coords.y * CHUNK_SIZE as i32) as usize]
+    pub fn get_tile_id(&self, coords: UVec2) -> u16 {
+        self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize]
     }
-    pub fn set_tile(&mut self, coords: IVec2, tile: String) {
+    pub fn set_tile(&mut self, coords: UVec2, tile: String) {
         if self.palette.contains_key(&tile) {
-            self.tiles[(coords.x + coords.y * CHUNK_SIZE as i32) as usize] =
+            self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize] =
                 *self.palette.get(&tile).expect("No value");
         } else {
             self.add_tile_to_chunk(tile.clone());
-            self.tiles[(coords.x + coords.y * CHUNK_SIZE as i32) as usize] =
+            self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize] =
                 *self.palette.get(&tile).expect("No value");
         }
     }
@@ -68,7 +70,7 @@ impl FixedTilemap {
         };
         for x in 0..(size.x / CHUNK_SIZE as i32) {
             for y in 0..(size.y / CHUNK_SIZE as i32) {
-                let chunk_pos_index = x + y * (size.x as usize / CHUNK_SIZE) as i32;
+                let chunk_pos_index = x + y * (size.x / CHUNK_SIZE as i32);
                 new_fixed_tilemap
                     .chunks
                     .insert(chunk_pos_index, Chunk::new(IVec2::new(x, y), layer));
@@ -76,9 +78,9 @@ impl FixedTilemap {
         }
         new_fixed_tilemap
     }
-    pub fn get_chunk_from_tile(&self, tile_pos: Vec2) -> Option<&Chunk> {
-        let chunk_pos_index = ((tile_pos.x as usize / CHUNK_SIZE)
-            + (tile_pos.y as usize / CHUNK_SIZE) * (self.size.x as usize / CHUNK_SIZE))
+    pub fn get_chunk_from_tile(&self, tile_pos: IVec2) -> Option<&Chunk> {
+        let chunk_pos_index = ((tile_pos.x / CHUNK_SIZE as i32)
+            + (tile_pos.y / CHUNK_SIZE as i32) * (self.size.x / CHUNK_SIZE as i32))
             as i32;
         self.chunks.get(&chunk_pos_index)
     }

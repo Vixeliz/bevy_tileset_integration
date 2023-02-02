@@ -22,9 +22,9 @@ fn main() {
 /// Temporary for me while debuging stuff.
 fn test_chunk() {
     let mut chunk = Chunk::new(IVec2::new(0, 0), 0.0);
-    chunk.set_tile(IVec2::new(10, 10), "Grass".to_string());
+    chunk.set_tile(UVec2::new(10, 10), "Grass".to_string());
     println!("{:?}", chunk);
-    println!("{:?}", chunk.get_tile_id(IVec2::new(10, 10)));
+    println!("{:?}", chunk.get_tile_id(UVec2::new(10, 10)));
 }
 
 /// Starts the tileset loading process
