@@ -14,8 +14,17 @@ fn main() {
         .add_plugin(TilesetPlugin::default())
         .init_resource::<MyTileset>()
         .add_startup_system(load_tileset)
-        .add_system(show_tileset)
+        .add_startup_system(test_chunk)
+        // .add_system(show_tileset)
         .run();
+}
+
+/// Temporary for me while debuging stuff.
+fn test_chunk() {
+    let mut chunk = Chunk::new(Vec2::new(0.0, 0.0));
+    chunk.set_tile(Vec2::new(10.0, 10.0), "Grass".to_string());
+    println!("{:?}", chunk);
+    println!("{:?}", chunk.get_tile_id(Vec2::new(10.0, 10.0)));
 }
 
 /// Starts the tileset loading process
