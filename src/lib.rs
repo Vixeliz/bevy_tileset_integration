@@ -5,5 +5,5 @@ mod tile_storage;
 
 pub mod prelude {
     pub use super::plugin::TilesetIntePlugin;
-    pub use super::tile_storage::{Chunk, FixedTilemap};
+    pub use super::tile_storage::{Chunk, FixedTilemap, CHUNK_SIZE};
 }

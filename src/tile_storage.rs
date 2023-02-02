@@ -4,8 +4,9 @@
 use std::collections::HashMap;
 
 use bevy::prelude::{IVec2, UVec2, Vec2};
+use bimap::BiMap;
 
-const CHUNK_SIZE: usize = 64;
+pub const CHUNK_SIZE: usize = 64;
 
 // We are stealing how minecraft and some other engines store chunk blocks. Instead of storing everything as a string per tile(which we could probably get away with in 2d)
 // we store a pallette which will map a tile string to a number then the tiles are stored as the numbers. This allows us to save on memory in most cases where there are same tiles
@@ -14,43 +15,68 @@ const CHUNK_SIZE: usize = 64;
 // the user chooses to do anything with them.
 #[derive(Debug)]
 pub struct Chunk {
-    pub palette: HashMap<String, u16>,
+    pub palette: BiMap<String, u16>,
     pub tiles: [u16; CHUNK_SIZE * CHUNK_SIZE],
     pub pos: IVec2,
     pub layer: f32,
 }
 
 impl Chunk {
-    /// Makes a new chunk filled with nothing.
-    pub fn new(pos: IVec2, layer: f32) -> Chunk {
+    /// Makes a new chunk filled with given tile or nothing.
+    pub fn new(pos: IVec2, layer: f32, tile: Option<String>) -> Chunk {
         let mut new_chunk = Chunk {
-            palette: HashMap::new(),
+            palette: BiMap::new(),
             tiles: [0; CHUNK_SIZE * CHUNK_SIZE],
             pos,
             layer,
         };
-        new_chunk.palette.insert("Air".to_string(), 0);
+        match tile {
+            Some(x) => {
+                new_chunk.palette.insert(x, 1);
+                new_chunk.tiles = [1; CHUNK_SIZE * CHUNK_SIZE];
+                new_chunk.palette.insert("Air".to_string(), 0);
+            }
+            None => {
+                new_chunk.palette.insert("Air".to_string(), 0);
+            }
+        }
         new_chunk
     }
     // 0 is always air
     fn add_tile_to_chunk(&mut self, tile: String) {
         // This is kind of a stupid way to do this
         for i in 1..self.tiles.len() {
-            self.palette.entry(tile).or_insert(i as u16);
+            if self.palette.contains_left(&tile) {
+                return;
+            }
+            if self.palette.contains_right(&(i as u16)) {
+                continue;
+            }
+            self.palette.insert(tile, i as u16);
             return;
         }
     }
     pub fn get_tile_id(&self, coords: UVec2) -> u16 {
         self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize]
     }
+    pub fn get_tile_name(&self, tile_id: u16) -> String {
+        for key in self.palette.left_values() {
+            if let Some(value) = self.palette.get_by_left(key) {
+                if *value == tile_id {
+                    return key.clone();
+                }
+            }
+        }
+        "Air".to_string()
+    }
     pub fn set_tile(&mut self, coords: UVec2, tile: String) {
-        if self.palette.contains_key(&tile) {
+        if self.palette.contains_left(&tile) {
             self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize] =
-                *self.palette.get(&tile).expect("No value");
+                *self.palette.get_by_left(&tile).expect("No value");
         } else {
             self.add_tile_to_chunk(tile.clone());
             self.tiles[(coords.x + coords.y * CHUNK_SIZE as u32) as usize] =
-                *self.palette.get(&tile).expect("No value");
+                *self.palette.get_by_left(&tile).expect("No value");
         }
     }
 }
@@ -73,7 +99,7 @@ impl FixedTilemap {
                 let chunk_pos_index = x + y * (size.x / CHUNK_SIZE as i32);
                 new_fixed_tilemap
                     .chunks
-                    .insert(chunk_pos_index, Chunk::new(IVec2::new(x, y), layer));
+                    .insert(chunk_pos_index, Chunk::new(IVec2::new(x, y), layer, None));
             }
         }
         new_fixed_tilemap
