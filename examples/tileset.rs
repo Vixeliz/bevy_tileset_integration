@@ -4,9 +4,15 @@ use bevy_ecs_tilemap::{
     tiles::{AnimatedTile, TileBundle, TilePos, TileStorage, TileTextureIndex},
     TilemapBundle, TilemapPlugin,
 };
-use bevy_tileset::prelude::*;
+use bevy_tileset::{
+    auto::{AutoTile, AutoTileId, AutoTilemap, AutoTiler},
+    prelude::*,
+    tileset::coords::TileCoords,
+};
 
 use bevy_tileset_integration::prelude::*;
+
+use rand::Rng;
 
 #[derive(Resource, Default)]
 struct MyTileset {
@@ -18,9 +24,11 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(TilemapPlugin)
         .add_plugin(TilesetPlugin::default())
+        .add_plugin(TilesetIntePlugin)
         .init_resource::<MyTileset>()
         .add_startup_system(load_tileset)
         .add_system(test_chunk)
+        .add_system(random_tiles)
         .run();
 }
 
@@ -117,15 +125,18 @@ fn test_chunk(
                 - (VECTOR_CHUNK_SIZE.y as f32 / 2.0 * tile_size.y),
             0.0,
         ));
-        commands.entity(tilemap_entity).insert(TilemapBundle {
-            grid_size: tile_size.into(),
-            size: VECTOR_CHUNK_SIZE.into(),
-            storage: tile_storage,
-            tile_size: tile_size,
-            transform,
-            map_type: TilemapType::default(),
-            texture: TilemapTexture::Single(texture),
-            ..Default::default()
+        commands.entity(tilemap_entity).insert(ChunkBundle {
+            tilemap_bundle: TilemapBundle {
+                grid_size: tile_size.into(),
+                size: VECTOR_CHUNK_SIZE.into(),
+                storage: tile_storage,
+                tile_size: tile_size,
+                transform,
+                map_type: TilemapType::default(),
+                texture: TilemapTexture::Single(texture),
+                ..Default::default()
+            },
+            chunk,
         });
         *has_ran = true;
     }
@@ -134,4 +145,32 @@ fn test_chunk(
 /// Starts the tileset loading process
 fn load_tileset(mut my_tileset: ResMut<MyTileset>, asset_server: Res<AssetServer>) {
     my_tileset.handle = Some(asset_server.load("tilesets/my_tileset.ron"));
+}
+
+fn random_tiles(
+    mut commands: Commands,
+    mut chunk_query: Query<(Entity, &mut Chunk), With<Chunk>>,
+    mut events: EventWriter<UpdateChunkEvent>,
+) {
+    if let Ok((chunk_entity, mut chunk)) = chunk_query.get_single_mut() {
+        let block_type = match rand::thread_rng().gen_range(0..4) {
+            0 => "Grass".to_string(),
+            1 => "Dirt".to_string(),
+            2 => "Glass".to_string(),
+            _ => "Wall".to_string(),
+        };
+        let tile_pos = UVec2::new(
+            rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
+            rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
+        );
+        chunk.set_tile(tile_pos, block_type);
+        events.send(UpdateChunkEvent {
+            tile_pos: TilePos {
+                x: tile_pos.x,
+                y: tile_pos.y,
+            },
+            tileset_name: "My Awesome Tileset".to_string(),
+            entity: chunk_entity,
+        });
+    }
 }

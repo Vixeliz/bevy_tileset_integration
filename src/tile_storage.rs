@@ -13,7 +13,7 @@ pub const CHUNK_SIZE: usize = 32;
 
 // Chunks are on the user to deal with in terms of deciding when to spawn or remove them. The only case that isn't true is when using tilemap where they will just always be there unless
 // the user chooses to do anything with them.
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Clone)]
 pub struct Chunk {
     pub palette: BiMap<String, u16>,
     pub tiles: [u16; CHUNK_SIZE * CHUNK_SIZE],

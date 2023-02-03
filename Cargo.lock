@@ -788,6 +788,7 @@ dependencies = [
  "bevy_ecs_tilemap",
  "bevy_tileset",
  "bimap",
+ "rand",
 ]
 
 [[package]]
