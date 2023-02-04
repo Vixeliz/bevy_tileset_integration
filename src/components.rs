@@ -53,4 +53,36 @@ impl ChunkBundle {
             },
         }
     }
+    pub fn new_from_chunk(tileset: &Tileset, chunk: Chunk) -> ChunkBundle {
+        let (x, y) = (chunk.pos.x, chunk.pos.y);
+        ChunkBundle {
+            chunk,
+            tilemap_bundle: TilemapBundle {
+                grid_size: TilemapGridSize {
+                    x: tileset.tile_size().x,
+                    y: tileset.tile_size().y,
+                },
+                map_type: TilemapType::default(),
+                size: TilemapSize {
+                    x: CHUNK_SIZE as u32,
+                    y: CHUNK_SIZE as u32,
+                },
+                storage: TileStorage::empty(TilemapSize {
+                    x: CHUNK_SIZE as u32,
+                    y: CHUNK_SIZE as u32,
+                }),
+                texture: TilemapTexture::Single(tileset.texture().clone()),
+                tile_size: TilemapTileSize {
+                    x: tileset.tile_size().x,
+                    y: tileset.tile_size().y,
+                },
+                transform: Transform::from_translation(Vec3::new(
+                    x as f32 * CHUNK_SIZE as f32 * tileset.tile_size().x,
+                    y as f32 * CHUNK_SIZE as f32 * tileset.tile_size().y,
+                    0.0,
+                )),
+                ..Default::default()
+            },
+        }
+    }
 }

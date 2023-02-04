@@ -32,6 +32,7 @@ fn test_chunk(
     tilesets: Tilesets,
     my_tileset: Res<MyTileset>,
     mut has_ran: Local<bool>,
+    mut events: EventWriter<FullUpdateChunkEvent>,
 ) {
     if my_tileset.handle.is_none() || *has_ran || !tilesets.contains_name("My Awesome Tileset") {
         return;
@@ -40,17 +41,22 @@ fn test_chunk(
     // let handle = my_tileset.handle.as_ref().unwrap();
     if let Some(tileset) = tilesets.get_by_name("My Awesome Tileset") {
         // === Generate Singular Chunk === //
-        // let mut chunk = Chunk::new(IVec2::new(0, 0), 0.0, Some("Dirt".to_string()));
-        // chunk.set_tile(UVec2::new(10, 10), "Wall".to_string());
-        // chunk.set_tile(UVec2::new(10, 9), "Wall".to_string());
-        // chunk.set_tile(UVec2::new(10, 8), "Glass".to_string());
+        let mut chunk = Chunk::new(IVec2::new(0, 0), 0.0, Some("Dirt".to_string()));
+        chunk.set_tile(UVec2::new(10, 10), "Wall".to_string());
+        chunk.set_tile(UVec2::new(10, 9), "Wall".to_string());
+        chunk.set_tile(UVec2::new(10, 8), "Glass".to_string());
 
         commands.spawn(Camera2dBundle::default());
-        // Spawn the new chunk passing in the tileset from bevy_tileset
+        // Spawn the new chunk default chunk passing in the tileset from bevy_tileset
         commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: -1, y: 0 }));
-        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: 0, y: 0 }));
-        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: 0, y: -1 }));
-        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: -1, y: -1 }));
+        // Create new chunk entity from existing chunk
+        let entity_id = commands
+            .spawn(ChunkBundle::new_from_chunk(&tileset, chunk))
+            .id();
+        events.send(FullUpdateChunkEvent {
+            entity: entity_id,
+            tileset_name: "My Awesome Tileset".to_string(),
+        });
         *has_ran = true;
     }
 }
