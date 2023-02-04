@@ -3,7 +3,7 @@
 // option for a fixed tilemap. As of right now layers will be handled by just making another one of our tilemap storage options.
 use std::collections::HashMap;
 
-use bevy::prelude::{Component, IVec2, UVec2, Vec2};
+use bevy::prelude::{Component, IVec2, UVec2};
 use bimap::BiMap;
 
 pub const CHUNK_SIZE: usize = 32;
@@ -19,6 +19,12 @@ pub struct Chunk {
     pub tiles: [u16; CHUNK_SIZE * CHUNK_SIZE],
     pub pos: IVec2,
     pub layer: f32,
+}
+
+impl Default for Chunk {
+    fn default() -> Self {
+        Chunk::new(IVec2 { x: 0, y: 0 }, 0.0, None)
+    }
 }
 
 impl Chunk {

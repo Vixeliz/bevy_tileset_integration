@@ -4,7 +4,6 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_tileset::prelude::*;
-use tile_storage::CHUNK_SIZE;
 
 use crate::{prelude::Chunk, tile_storage};
 
@@ -22,7 +21,7 @@ pub fn sync_chunks(
 ) {
     for evt in event.iter() {
         if let Some(tileset) = tilesets.get_by_name(evt.tileset_name.as_str()) {
-            if let Ok((mut chunk, tilemap_id, mut tile_store)) = tilemap_query.get_mut(evt.entity) {
+            if let Ok((chunk, tilemap_id, mut tile_store)) = tilemap_query.get_mut(evt.entity) {
                 if let Some((ref tile_idx, ..)) = tileset.select_tile(
                     chunk
                         .get_tile_name(
