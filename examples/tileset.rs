@@ -47,7 +47,10 @@ fn test_chunk(
 
         commands.spawn(Camera2dBundle::default());
         // Spawn the new chunk passing in the tileset from bevy_tileset
-        commands.spawn(ChunkBundle::new(&tileset));
+        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: -1, y: 0 }));
+        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: 0, y: 0 }));
+        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: 0, y: -1 }));
+        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: -1, y: -1 }));
         *has_ran = true;
     }
 }
@@ -63,7 +66,7 @@ fn random_tiles(
 ) {
     // Just randomly set tiles in the given chunk. Would have to loop if you were
     // spawning multiples
-    if let Ok((chunk_entity, mut chunk)) = chunk_query.get_single_mut() {
+    for (chunk_entity, mut chunk) in chunk_query.iter_mut() {
         let block_type = match rand::thread_rng().gen_range(0..4) {
             0 => "Grass".to_string(),
             1 => "Dirt".to_string(),

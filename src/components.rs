@@ -19,10 +19,10 @@ pub struct ChunkBundle {
 
 // In the future we could possibly use systemparams instead with something that handles the chunks
 // But rn i want to keep it relatively simple the code so it's easy to maintain and understand.
-// TODO: pass in position
 impl ChunkBundle {
-    pub fn new(tileset: &Tileset) -> ChunkBundle {
-        let chunk = Chunk::default();
+    pub fn new(tileset: &Tileset, pos: IVec2) -> ChunkBundle {
+        let mut chunk = Chunk::default();
+        chunk.pos = pos;
         ChunkBundle {
             chunk,
             tilemap_bundle: TilemapBundle {
@@ -44,6 +44,11 @@ impl ChunkBundle {
                     x: tileset.tile_size().x,
                     y: tileset.tile_size().y,
                 },
+                transform: Transform::from_translation(Vec3::new(
+                    pos.x as f32 * CHUNK_SIZE as f32 * tileset.tile_size().x,
+                    pos.y as f32 * CHUNK_SIZE as f32 * tileset.tile_size().y,
+                    0.0,
+                )),
                 ..Default::default()
             },
         }
