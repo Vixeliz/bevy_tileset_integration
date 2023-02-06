@@ -32,7 +32,8 @@ fn test_chunk(
     tilesets: Tilesets,
     my_tileset: Res<MyTileset>,
     mut has_ran: Local<bool>,
-    mut events: EventWriter<FullUpdateChunkEvent>,
+    // mut events: EventWriter<FullUpdateChunkEvent>,
+    mut chunk_manager: ChunkManager,
 ) {
     if my_tileset.handle.is_none() || *has_ran || !tilesets.contains_name("My Awesome Tileset") {
         return;
@@ -48,15 +49,16 @@ fn test_chunk(
 
         commands.spawn(Camera2dBundle::default());
         // Spawn the new chunk default chunk passing in the tileset from bevy_tileset
-        commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: -1, y: 0 }));
-        // Create new chunk entity from existing chunk
-        let entity_id = commands
-            .spawn(ChunkBundle::new_from_chunk(&tileset, chunk))
-            .id();
-        events.send(FullUpdateChunkEvent {
-            entity: entity_id,
-            tileset_name: "My Awesome Tileset".to_string(),
-        });
+        // commands.spawn(ChunkBundle::new(&tileset, IVec2 { x: -1, y: 0 }));
+        // // Create new chunk entity from existing chunk
+        // let entity_id = commands
+        //     .spawn(ChunkBundle::new_from_chunk(&tileset, chunk))
+        //     .id();
+        // events.send(FullUpdateChunkEvent {
+        //     entity: entity_id,
+        //     tileset_name: "My Awesome Tileset".to_string(),
+        // });
+        chunk_manager.add_new_chunk(IVec2 { x: 0, y: 0 }, "My Awesome Tileset".to_string());
         *has_ran = true;
     }
 }

@@ -17,8 +17,6 @@ pub struct ChunkBundle {
     pub tilemap_bundle: TilemapBundle,
 }
 
-// In the future we could possibly use systemparams instead with something that handles the chunks
-// But rn i want to keep it relatively simple the code so it's easy to maintain and understand.
 impl ChunkBundle {
     pub fn new(tileset: &Tileset, pos: IVec2) -> ChunkBundle {
         let mut chunk = Chunk::default();

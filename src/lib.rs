@@ -8,6 +8,7 @@ mod tilemap_syncing;
 
 pub mod prelude {
     pub use super::components::ChunkBundle;
+    pub use super::placer::{ChunkManager, ChunkStorage};
     pub use super::plugin::TilesetIntePlugin;
     pub use super::tile_storage::{Chunk, FixedTilemap, CHUNK_SIZE};
     pub use super::tilemap_syncing::{FullUpdateChunkEvent, UpdateChunkEvent};

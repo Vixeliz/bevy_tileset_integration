@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 
 use crate::tilemap_syncing;
@@ -11,6 +13,9 @@ impl Plugin for TilesetIntePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<crate::tilemap_syncing::UpdateChunkEvent>()
             .add_event::<crate::tilemap_syncing::FullUpdateChunkEvent>()
+            .insert_resource(crate::placer::ChunkStorage {
+                chunks: HashMap::new(),
+            })
             .add_stage_before(
                 CoreStage::PostUpdate,
                 NEWCHUNKSTAGE,
