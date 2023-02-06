@@ -18,8 +18,9 @@ pub struct ChunkBundle {
 }
 
 impl ChunkBundle {
-    pub fn new(tileset: &Tileset, pos: IVec2) -> ChunkBundle {
+    pub fn new(tileset: &Tileset, pos: IVec2, layer: i32) -> ChunkBundle {
         let mut chunk = Chunk::default();
+        chunk.layer = layer;
         chunk.pos = pos;
         ChunkBundle {
             chunk,
@@ -45,7 +46,7 @@ impl ChunkBundle {
                 transform: Transform::from_translation(Vec3::new(
                     pos.x as f32 * CHUNK_SIZE as f32 * tileset.tile_size().x,
                     pos.y as f32 * CHUNK_SIZE as f32 * tileset.tile_size().y,
-                    0.0,
+                    layer as f32,
                 )),
                 ..Default::default()
             },
@@ -53,6 +54,7 @@ impl ChunkBundle {
     }
     pub fn new_from_chunk(tileset: &Tileset, chunk: Chunk) -> ChunkBundle {
         let (x, y) = (chunk.pos.x, chunk.pos.y);
+        let layer = chunk.layer;
         ChunkBundle {
             chunk,
             tilemap_bundle: TilemapBundle {
@@ -77,7 +79,7 @@ impl ChunkBundle {
                 transform: Transform::from_translation(Vec3::new(
                     x as f32 * CHUNK_SIZE as f32 * tileset.tile_size().x,
                     y as f32 * CHUNK_SIZE as f32 * tileset.tile_size().y,
-                    0.0,
+                    layer as f32,
                 )),
                 ..Default::default()
             },

@@ -36,15 +36,10 @@ fn test_chunk(
     }
 
     if let Some(tileset) = tilesets.get_by_name("My Awesome Tileset") {
-        // === Generate Singular Chunk === //
-        let mut chunk = Chunk::new(IVec2::new(0, 0), 0.0, Some("Dirt".to_string()));
-        chunk.set_tile(UVec2::new(10, 10), "Wall".to_string());
-        chunk.set_tile(UVec2::new(10, 9), "Wall".to_string());
-        chunk.set_tile(UVec2::new(10, 8), "Glass".to_string());
-
         commands.spawn(Camera2dBundle::default());
-        chunk_manager.add_new_chunk(IVec2 { x: 0, y: 0 }, "My Awesome Tileset".to_string());
-        chunk_manager.add_new_chunk(IVec2 { x: -1, y: 0 }, "My Awesome Tileset".to_string());
+        let chunk = Chunk::new(IVec2 { x: 0, y: 0 }, 1, Some("Grass".to_string()));
+        chunk_manager.add_chunk("My Awesome Tileset".to_string(), chunk);
+        chunk_manager.add_new_chunk(IVec2 { x: 0, y: 0 }, "My Awesome Tileset".to_string(), 2);
         *has_ran = true;
     }
 }
@@ -56,25 +51,27 @@ fn load_tileset(mut my_tileset: ResMut<MyTileset>, asset_server: Res<AssetServer
 
 fn random_tiles(mut chunk_manager: ChunkManager, chunk_query: Query<&Chunk>) {
     for chunk in chunk_query.iter() {
-        let key = chunk.pos;
-        let block_type = match rand::thread_rng().gen_range(0..4) {
-            0 => "Grass".to_string(),
-            1 => "Dirt".to_string(),
-            2 => "Glass".to_string(),
-            _ => "Wall".to_string(),
-        };
-        let tile_pos = UVec2::new(
-            rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
-            rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
-        );
-        chunk_manager.set_tile_in_chunk(
-            tile_pos,
-            key,
-            "My Awesome Tileset".to_string(),
-            block_type,
-        );
-        if rand::thread_rng().gen_range(0..1000) == 0 {
-            chunk_manager.remove_chunk(key);
+        if chunk.layer != 1 {
+            let key = chunk.pos;
+            let block_type = match rand::thread_rng().gen_range(0..4) {
+                0 => "Grass".to_string(),
+                1 => "Dirt".to_string(),
+                2 => "Glass".to_string(),
+                _ => "Wall".to_string(),
+            };
+            let tile_pos = UVec2::new(
+                rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
+                rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
+            );
+            chunk_manager.set_tile_in_chunk(
+                tile_pos,
+                key,
+                "My Awesome Tileset".to_string(),
+                block_type,
+                chunk.layer,
+            );
         }
+        //= How you could delete a chunk =//
+        //chunk_manager.remove_chunk(key, 0);
     }
 }

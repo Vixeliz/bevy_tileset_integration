@@ -18,18 +18,18 @@ pub struct Chunk {
     pub palette: BiMap<String, u16>,
     pub tiles: [u16; CHUNK_SIZE * CHUNK_SIZE],
     pub pos: IVec2,
-    pub layer: f32,
+    pub layer: i32,
 }
 
 impl Default for Chunk {
     fn default() -> Self {
-        Chunk::new(IVec2 { x: 0, y: 0 }, 0.0, None)
+        Chunk::new(IVec2 { x: 0, y: 0 }, 0, None)
     }
 }
 
 impl Chunk {
     /// Makes a new chunk filled with given tile or nothing.
-    pub fn new(pos: IVec2, layer: f32, tile: Option<String>) -> Chunk {
+    pub fn new(pos: IVec2, layer: i32, tile: Option<String>) -> Chunk {
         let mut new_chunk = Chunk {
             palette: BiMap::new(),
             tiles: [0; CHUNK_SIZE * CHUNK_SIZE],
@@ -95,7 +95,7 @@ pub struct FixedTilemap {
 
 impl FixedTilemap {
     /// Create new tilemap with the given size in tiles
-    pub fn new(&self, size: IVec2, layer: f32) -> FixedTilemap {
+    pub fn new(&self, size: IVec2, layer: i32) -> FixedTilemap {
         let mut new_fixed_tilemap = FixedTilemap {
             size,
             chunks: HashMap::new(),
