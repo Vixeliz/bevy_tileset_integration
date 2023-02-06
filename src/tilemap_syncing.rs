@@ -11,6 +11,7 @@ use crate::{prelude::Chunk, tile_storage};
 pub struct UpdateChunkEvent {
     pub tile_pos: TilePos,
     pub tileset_name: String,
+    pub tile_type: String,
     pub entity: Entity,
 }
 
@@ -82,14 +83,9 @@ pub fn sync_chunks(
 ) {
     for evt in event.iter() {
         if let Some(tileset) = tilesets.get_by_name(evt.tileset_name.as_str()) {
-            if let Ok((chunk, tilemap_id, mut tile_store)) = tilemap_query.get_mut(evt.entity) {
-                if let Some((ref tile_idx, ..)) = tileset.select_tile(
-                    chunk
-                        .get_tile_name(
-                            chunk.get_tile_id(UVec2::new(evt.tile_pos.x, evt.tile_pos.y)),
-                        )
-                        .as_str(),
-                ) {
+            if let Ok((mut chunk, tilemap_id, mut tile_store)) = tilemap_query.get_mut(evt.entity) {
+                if let Some((ref tile_idx, ..)) = tileset.select_tile(evt.tile_type.as_str()) {
+                    chunk.set_tile(evt.tile_pos.into(), evt.tile_type.to_owned());
                     let tile_entity = match tile_idx {
                         TileIndex::Standard(index) => commands
                             .spawn(TileBundle {

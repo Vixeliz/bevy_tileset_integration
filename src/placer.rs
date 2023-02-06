@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use bevy::{ecs::system::SystemParam, prelude::*};
+use bevy_ecs_tilemap::tiles::TilePos;
 use bevy_tileset::prelude::Tilesets;
 
-use crate::prelude::{Chunk, ChunkBundle, FullUpdateChunkEvent};
+use crate::prelude::{Chunk, ChunkBundle, FullUpdateChunkEvent, UpdateChunkEvent};
 
 // This is the easy to use public facing api handles chunk creation,
 // Creating and managing tilemaps with ecs_tilemap etc.
@@ -17,7 +18,8 @@ pub struct ChunkManager<'w, 's> {
     chunk_storage: ResMut<'w, ChunkStorage>,
     chunk_query: Query<'w, 's, &'static Chunk>,
     tilesets: Tilesets<'w, 's>,
-    events: EventWriter<'w, 's, FullUpdateChunkEvent>,
+    full_update_chunk_events: EventWriter<'w, 's, FullUpdateChunkEvent>,
+    update_chunk_events: EventWriter<'w, 's, UpdateChunkEvent>,
 }
 
 impl<'w, 's> ChunkManager<'w, 's> {
@@ -26,19 +28,36 @@ impl<'w, 's> ChunkManager<'w, 's> {
         if let Some(tileset) = self.tilesets.get_by_name(tileset_name.as_str()) {
             let chunk_entity = self.commands.spawn(ChunkBundle::new(&tileset, pos)).id();
             self.chunk_storage.chunks.insert(pos, chunk_entity);
-            self.events.send(FullUpdateChunkEvent {
+            self.full_update_chunk_events.send(FullUpdateChunkEvent {
                 entity: chunk_entity,
                 tileset_name,
             });
         }
     }
     pub fn remove_chunk(&mut self, pos: IVec2) {
-        self.commands
-            .entity(*self.chunk_storage.chunks.get(&pos).unwrap());
-        self.chunk_storage.chunks.remove(&pos);
-        // self.events.send(FullUpdateChunkEvent {
-        //     entity: chunk_entity,
-        //     tileset_name,
-        // });
+        if let Some(chunk_entity) = self.chunk_storage.chunks.get(&pos) {
+            self.commands.entity(*chunk_entity).despawn_recursive();
+            self.chunk_storage.chunks.remove(&pos);
+            // self.events.send(FullUpdateChunkEvent {
+            //     entity: chunk_entity,
+            //     tileset_name,
+            // });
+        }
+    }
+    pub fn set_tile_in_chunk(
+        &mut self,
+        pos: UVec2,
+        chunk_pos: IVec2,
+        tileset_name: String,
+        block_type: String,
+    ) {
+        if let Some(chunk_entity) = self.chunk_storage.chunks.get(&chunk_pos) {
+            self.update_chunk_events.send(UpdateChunkEvent {
+                tile_pos: TilePos { x: pos.x, y: pos.y },
+                tileset_name,
+                entity: *chunk_entity,
+                tile_type: block_type,
+            });
+        }
     }
 }

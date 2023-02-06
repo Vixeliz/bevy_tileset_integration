@@ -68,31 +68,26 @@ fn load_tileset(mut my_tileset: ResMut<MyTileset>, asset_server: Res<AssetServer
     my_tileset.handle = Some(asset_server.load("tilesets/my_tileset.ron"));
 }
 
-fn random_tiles(
-    mut chunk_query: Query<(Entity, &mut Chunk), With<Chunk>>,
-    mut events: EventWriter<UpdateChunkEvent>,
-) {
+fn random_tiles(mut chunk_manager: ChunkManager) {
     // Just randomly set tiles in the given chunk. Would have to loop if you were
     // spawning multiples
-    for (chunk_entity, mut chunk) in chunk_query.iter_mut() {
-        let block_type = match rand::thread_rng().gen_range(0..4) {
-            0 => "Grass".to_string(),
-            1 => "Dirt".to_string(),
-            2 => "Glass".to_string(),
-            _ => "Wall".to_string(),
-        };
-        let tile_pos = UVec2::new(
-            rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
-            rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
-        );
-        chunk.set_tile(tile_pos, block_type);
-        events.send(UpdateChunkEvent {
-            tile_pos: TilePos {
-                x: tile_pos.x,
-                y: tile_pos.y,
-            },
-            tileset_name: "My Awesome Tileset".to_string(),
-            entity: chunk_entity,
-        });
+    let block_type = match rand::thread_rng().gen_range(0..4) {
+        0 => "Grass".to_string(),
+        1 => "Dirt".to_string(),
+        2 => "Glass".to_string(),
+        _ => "Wall".to_string(),
+    };
+    let tile_pos = UVec2::new(
+        rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
+        rand::thread_rng().gen_range(0..CHUNK_SIZE) as u32,
+    );
+    chunk_manager.set_tile_in_chunk(
+        tile_pos,
+        IVec2 { x: 0, y: 0 },
+        "My Awesome Tileset".to_string(),
+        block_type,
+    );
+    if rand::thread_rng().gen_range(0..1000) == 0 {
+        chunk_manager.remove_chunk(IVec2 { x: 0, y: 0 });
     }
 }
