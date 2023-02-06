@@ -16,7 +16,6 @@ pub struct ChunkStorage {
 pub struct ChunkManager<'w, 's> {
     commands: Commands<'w, 's>,
     chunk_storage: ResMut<'w, ChunkStorage>,
-    chunk_query: Query<'w, 's, &'static Chunk>,
     tilesets: Tilesets<'w, 's>,
     full_update_chunk_events: EventWriter<'w, 's, FullUpdateChunkEvent>,
     update_chunk_events: EventWriter<'w, 's, UpdateChunkEvent>,
@@ -38,10 +37,6 @@ impl<'w, 's> ChunkManager<'w, 's> {
         if let Some(chunk_entity) = self.chunk_storage.chunks.get(&pos) {
             self.commands.entity(*chunk_entity).despawn_recursive();
             self.chunk_storage.chunks.remove(&pos);
-            // self.events.send(FullUpdateChunkEvent {
-            //     entity: chunk_entity,
-            //     tileset_name,
-            // });
         }
     }
     pub fn set_tile_in_chunk(
