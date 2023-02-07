@@ -21,6 +21,7 @@ fn main() {
         .init_resource::<WorldMousePos>()
         .add_startup_system(load_tileset)
         .add_system(test_chunk)
+        .add_system(move_camera)
         .add_system(my_cursor_system)
         .add_system(random_tiles)
         .run();
@@ -94,6 +95,27 @@ fn my_cursor_system(
             // reduce it to a 2D value
             let world_pos: Vec2 = world_pos.truncate();
             world_mouse.0 = world_pos;
+        }
+    }
+}
+
+fn move_camera(
+    mut q_camera: Query<&mut Transform, With<CameraTag>>,
+    keys: Res<Input<KeyCode>>,
+    time: Res<Time>,
+) {
+    if let Ok(mut camera_transform) = q_camera.get_single_mut() {
+        if keys.pressed(KeyCode::W) {
+            camera_transform.translation.y += 500.0 * time.delta_seconds();
+        }
+        if keys.pressed(KeyCode::S) {
+            camera_transform.translation.y -= 500.0 * time.delta_seconds();
+        }
+        if keys.pressed(KeyCode::D) {
+            camera_transform.translation.x += 500.0 * time.delta_seconds();
+        }
+        if keys.pressed(KeyCode::A) {
+            camera_transform.translation.x -= 500.0 * time.delta_seconds();
         }
     }
 }
