@@ -33,10 +33,10 @@ impl<'w, 's> ChunkManager<'w, 's> {
         if let Some(current_chunk) = self.chunk_storage.chunks.get(&layer) {
             if let Some(tileset) = self.tilesets.get_by_name(tileset_name.as_str()) {
                 let mut world_pos = (pos + tileset.tile_size() / 2.0).as_ivec2();
-                if pos.x < 0.0 {
+                if pos.x < -5.0 {
                     world_pos.x -= CHUNK_SIZE as i32 * tileset.tile_size().x as i32;
                 }
-                if pos.y < 0.0 {
+                if pos.y < -5.0 {
                     world_pos.y -= CHUNK_SIZE as i32 * tileset.tile_size().y as i32;
                 }
                 let chunk_size: IVec2 = IVec2::new(CHUNK_SIZE as i32, CHUNK_SIZE as i32);
