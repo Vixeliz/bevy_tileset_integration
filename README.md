@@ -4,11 +4,13 @@ An opinionated integration plugin between [bevy_tileset](https://github.com/MrGV
 
 ![tileset-example](repo/tileset-example.png)
 
+### WARNING THIS IS UNFINISHED NOT ALL PROMISED FEATURES MAY BE DONE A ! WILL BE NEXT TO UNFINISHED
+
 ### Features
 * Easy api for setting tiles from a tilename.
-* Opinionated tile_storage that helps with serialization and abstraction
-* Supports all features from bevy_tileset(animation, auto-tiling, variants)
-* Flexibility use chunks for your storage type or use a wrapper that acts like a fixed map!
+* Opinionated tile_storage that helps with serialization(!) and abstraction
+* Supports all(!) features from bevy_tileset(animation, auto-tiling(!), variants(!))
+* Flexibility use chunks for your storage type or use a wrapper that acts like a fixed map(!)!
 
 ### Getting Started
 1. Todo
